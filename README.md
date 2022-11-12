@@ -10,7 +10,7 @@ go build go_scan.go
 Run go-scan:
 
 ```
-./go_scan <ip address>
+./go_scan <ip address> <start_port> <end_port>
 ```
 
 To install go-scan:
