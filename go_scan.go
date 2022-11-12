@@ -75,6 +75,12 @@ func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
 
 func main() {
 	var ip_arg string
+
+	if len(os.Args[1:]) < 1 {
+		fmt.Println("Please enter an IP to scan!")
+		return
+	}
+
 	for _, arg := range os.Args[1:2] {
 		fmt.Println("Scanning IP: " + arg)
 		ip_arg = arg
