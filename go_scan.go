@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -17,6 +18,9 @@ type PortScanner struct {
 	ip   string
 	lock *semaphore.Weighted
 }
+
+var open_ports int = 0
+var closed_ports int = 0
 
 func Ulimit() int64 {
 	out, err := exec.Command("ulimit", "-n").Output()
@@ -44,12 +48,14 @@ func ScanPort(ip string, port int, timeout time.Duration) {
 			ScanPort(ip, port, timeout)
 		} else {
 			fmt.Println(port, "closed")
+			closed_ports++
 		}
 		return
 	}
 
 	conn.Close()
 	fmt.Println(port, "open")
+	open_ports++
 }
 
 func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
@@ -68,9 +74,18 @@ func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
 }
 
 func main() {
+	var ip_arg string
+	for _, arg := range os.Args[1:2] {
+		fmt.Println("Scanning IP: " + arg)
+		ip_arg = arg
+	}
+
 	ps := &PortScanner{
-		ip:   "127.0.0.1",
+		ip:   ip_arg,
 		lock: semaphore.NewWeighted(Ulimit()),
 	}
 	ps.Start(1, 65535, 500*time.Millisecond)
+	fmt.Println("Scanned IP: " + ip_arg)
+	fmt.Println("Number of Open Ports: " + strconv.Itoa(open_ports))
+	fmt.Println("Number of Closed Ports: " + strconv.Itoa(closed_ports))
 }
