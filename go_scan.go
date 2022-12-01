@@ -75,9 +75,21 @@ func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
 
 func main() {
 	var ip_arg string
+	var start_port string
+	var end_port string
 
 	if len(os.Args[1:]) < 1 {
-		fmt.Println("Please enter an IP to scan!")
+		fmt.Println("Please enter an IP, start port and end port to scan!")
+		return
+	}
+
+	if len(os.Args[1:]) < 2 {
+		fmt.Println("Please enter a start port and end port to scan!")
+		return
+	}
+
+	if len(os.Args[1:]) < 3 {
+		fmt.Println("Please enter an end port to scan!")
 		return
 	}
 
@@ -86,12 +98,28 @@ func main() {
 		ip_arg = arg
 	}
 
+	for _, p_arg := range os.Args[2:3] {
+		fmt.Println("Scanning From port: " + p_arg)
+		start_port = p_arg
+	}
+
+	for _, e_arg := range os.Args[3:4] {
+		fmt.Println("Scanning To port: " + e_arg)
+		end_port = e_arg
+	}
+
 	ps := &PortScanner{
 		ip:   ip_arg,
 		lock: semaphore.NewWeighted(Ulimit()),
 	}
-	ps.Start(1, 65535, 500*time.Millisecond)
+
+	start_port_int, _ := strconv.Atoi(start_port)
+	end_port_int, _ := strconv.Atoi(end_port)
+
+	ps.Start(start_port_int, end_port_int, 500*time.Millisecond)
 	fmt.Println("Scanned IP: " + ip_arg)
+	fmt.Println("Scanned From Port: " + start_port)
+	fmt.Println("Scanned To Port: " + end_port)
 	fmt.Println("Number of Open Ports: " + strconv.Itoa(open_ports))
 	fmt.Println("Number of Closed Ports: " + strconv.Itoa(closed_ports))
 }
