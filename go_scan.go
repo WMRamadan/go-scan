@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"golang.org/x/sync/semaphore"
@@ -22,20 +22,13 @@ type PortScanner struct {
 var open_ports int = 0
 var closed_ports int = 0
 
-func Ulimit() int64 {
-	out, err := exec.Command("ulimit", "-n").Output()
-	if err != nil {
+func Rlimit() int64 {
+	var limit syscall.Rlimit
+	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &limit); err != nil {
 		panic(err)
 	}
 
-	s := strings.TrimSpace(string(out))
-
-	i, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		panic(err)
-	}
-
-	return i
+	return int64(limit.Cur)
 }
 
 func ScanPort(ip string, port int, timeout time.Duration) {
@@ -110,7 +103,7 @@ func main() {
 
 	ps := &PortScanner{
 		ip:   ip_arg,
-		lock: semaphore.NewWeighted(Ulimit()),
+		lock: semaphore.NewWeighted(Rlimit()),
 	}
 
 	start_port_int, _ := strconv.Atoi(start_port)
